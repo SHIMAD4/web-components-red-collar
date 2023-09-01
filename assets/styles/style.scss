@@ -1,0 +1,71 @@
+$body-bg: black;
+
+$timer-bg: #FF8C00;
+$timer-bg-hover: #FFA500;
+$timer-bg-active: #ffa600de;
+$timer-text-clr: black;
+
+$border-radius: 1rem;
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body {
+    height: 95vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    background-color: $body-bg;
+    font-family: 'Inter', sans-serif;
+}
+button {
+    background-color: transparent;
+    border: none;
+    outline: none;
+    font-size: 1.5rem;
+}
+
+.timer-wrapper {
+    width: 100%;
+    max-width: 1240px;
+    margin: 0 auto;
+}
+.timer {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(2, 1fr);
+    &__display {
+        width: 23.5rem;
+        padding: 2rem;
+        border-radius: $border-radius;
+        background-color: $timer-bg;
+        color: $timer-text-clr;
+        text-align: center;
+        font-size: 2rem;
+    }
+    &__button {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        &__start,
+        &__stop,
+        &__reset {
+            padding: 1.5rem;
+            background-color: $timer-bg;
+            color: $timer-text-clr;
+            border-radius: $border-radius;
+            font-weight: 500;
+            cursor: pointer;
+            &:hover {
+                background-color: $timer-bg-hover;
+            }
+            &:active {
+                background-color: $timer-bg-active;
+            }
+        }
+    }
+}
