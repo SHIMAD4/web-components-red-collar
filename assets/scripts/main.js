@@ -31,13 +31,6 @@ customElements.define('my-timer', class extends HTMLElement {
         return ['seconds']
     }
 
-    attributeChangedCallback(name, oldValue, newValue) {
-        if (name === 'seconds' && newValue !== oldValue) {
-            this.seconds = parseInt(newValue) || 0
-            this.formatAndDisplayTime()
-        }
-    }
-
     formattedTime(seconds) {
         let formattedTime = ''
 
@@ -60,8 +53,6 @@ customElements.define('my-timer', class extends HTMLElement {
         }
     
         formattedTime += this.seconds.toString().padStart(2, '0')
-    
-        console.log('Форматированное время:', formattedTime)
     }
 
     formatNumber(num) {
@@ -104,9 +95,14 @@ customElements.define('my-timer', class extends HTMLElement {
             }, 1000)
         }
     }
+    
 
     pauseTimer() {
         this.isPaused = true
+        this.startTrigger = false
+        if (this.timerInterval && this.isPaused) {
+            clearInterval(this.timerInterval)
+        }
     }
 
     resetTimer() {
