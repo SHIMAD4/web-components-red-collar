@@ -5,20 +5,26 @@ customElements.define('my-timer', class extends HTMLElement {
         this.minutes = null
         this.hours = null
         this.startTrigger = false
+        this.isPaused = false
+        this.timerInterval = null
         this.startButton = document.getElementById('startBtn') || undefined
+        this.pauseButton = document.getElementById('pauseBtn') || undefined
+        this.resetButton = document.getElementById('resetBtn') || undefined
         this.timerDisplay = document.querySelector('.timer__display') || undefined
+        this.hoursText = null
+        this.minutesText = null
+        this.secondsText = null
     }
     connectedCallback() {
-        // this._shadow = this.attachShadow({mode: 'open'})
-        // const p = document.querySelector('.timer__display')
-        // p.innerHTML = 'Таймер'
-        // this._shadow.append(p)
-        
         this.formattedTime(this.seconds)
         this.startButton.addEventListener('click', () => {this.startTimer()})
+        this.pauseButton.addEventListener('click', () => {this.pauseTimer()})
+        this.resetButton.addEventListener('click', () => {this.resetTimer()})
     }
     disconnectedCallback() {
-
+        this.startButton.removeEventListener('click', () => {this.startTimer()})
+        this.pauseButton.removeEventListener('click', () => {this.pauseTimer()})
+        this.resetButton.removeEventListener('click', () => {this.resetTimer()})
     }
 
     static get observedAttributes() {
@@ -26,7 +32,10 @@ customElements.define('my-timer', class extends HTMLElement {
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
-
+        if (name === 'seconds' && newValue !== oldValue) {
+            this.seconds = parseInt(newValue) || 0
+            this.formatAndDisplayTime()
+        }
     }
 
     formattedTime(seconds) {
@@ -55,37 +64,56 @@ customElements.define('my-timer', class extends HTMLElement {
         console.log('Форматированное время:', formattedTime)
     }
 
-    startTimer() {
-        this.startTrigger = true;
-    
-        const timerInterval = setInterval(() => {
-            if (this.startTrigger) {
-                const formatNumber = (num) => (num < 10 ? `0${num}` : `${num}`);
-                const hoursText = this.hours === 0 ? '' : formatNumber(this.hours);
-                const minutesText = this.minutes === 0 ? '' : formatNumber(this.minutes);
-                const secondsText = this.seconds === 0 ? '' : formatNumber(this.seconds);
+    formatNumber(num) {
+        return num < 10 ? `0${num}` : `${num}`
+    }
 
-                this.timerDisplay.innerText = `${hoursText}${hoursText && minutesText ? ':' : ''}${minutesText}${(hoursText || minutesText) && secondsText ? ':' : ''}${secondsText}`;
-                        
-                if (this.seconds > 0) {
-                    this.seconds -= 1
-                } else {
-                    if (this.minutes > 0) {
-                        this.minutes -= 1
-                        this.seconds = 59
+    numberDisplay() {
+        this.hoursText = this.hours === 0 ? '' : this.formatNumber(this.hours)
+        this.minutesText = this.minutes === 0 ? '' : this.formatNumber(this.minutes)
+        this.secondsText = this.seconds === 0 ? '' : this.formatNumber(this.seconds)
+        this.timerDisplay.innerText = `${this.hoursText}${this.hoursText && this.minutesText ? ':' : ''}${this.minutesText}${(this.hoursText || this.minutesText) && this.secondsText ? ':' : ''}${this.secondsText}`
+    }
+
+    startTimer() {
+        if (!this.startTrigger) {
+            this.isPaused = false
+            this.startTrigger = true
+            this.timerInterval = setInterval(() => {
+                if (this.startTrigger && !this.isPaused) {
+                    this.numberDisplay()
+                    if (this.seconds > 0) {
+                        this.seconds -= 1
                     } else {
-                        if (this.hours > 0) {
-                            this.hours -= 1
-                            this.minutes = 59
+                        if (this.minutes > 0) {
+                            this.minutes -= 1
                             this.seconds = 59
                         } else {
-                            this.startTrigger = false
-                            clearInterval(timerInterval)
-                            this.timerDisplay.innerText = 'Время кончилось'
+                            if (this.hours > 0) {
+                                this.hours -= 1
+                                this.minutes = 59
+                                this.seconds = 59
+                            } else {
+                                this.startTrigger = false
+                                clearInterval(this.timerInterval)
+                                this.timerDisplay.innerText = 'Время кончилось'
+                            }
                         }
                     }
                 }
-            }
-        }, 1000)
+            }, 1000)
+        }
+    }
+
+    pauseTimer() {
+        this.isPaused = true
+    }
+
+    resetTimer() {
+        this.isPaused = false
+        this.startTrigger = false
+        clearInterval(this.timerInterval)
+        this.formattedTime(this.getAttribute('seconds'))
+        this.numberDisplay()
     }
 })
