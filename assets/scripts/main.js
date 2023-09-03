@@ -1,5 +1,5 @@
-// Регистрация пользовательского компонента и инициализация его класса
-customElements.define('my-timer', class extends HTMLElement {
+// Bнициализация класса пользовательского компонента
+class Timer extends HTMLElement {
     constructor() {
         super()
         // Инициализация секунд, минут и часов
@@ -20,20 +20,16 @@ customElements.define('my-timer', class extends HTMLElement {
         // Инициализация интервала
         this.timerInterval = null
 
-        // Инициализация кнопок таймера и блока для вывода на экран
-        this.startButton = document.getElementById('startBtn') || undefined
-        this.pauseButton = document.getElementById('pauseBtn') || undefined
-        this.resetButton = document.getElementById('resetBtn') || undefined
+        // Инициализация блока для вывода на экран
         this.timerDisplay = document.querySelector('.timer__display') || undefined
         
         // Инициализация теневого дерева
         this._shadow = this.timerDisplay.attachShadow({mode: 'closed'})
 
-        // Инициализация пользовательских событий
-        this.startTimerEvent = new Event('starttimer')
-        this.pauseTimerEvent = new Event('pausetimer')
-        this.resetTimerEvent = new Event('resettimer')
-        this.endTimerEvent = new Event('endtimer')
+        // Инициализация события завершения таймера
+        this.endTimerEvent = new Event('endtimer', {
+            bubbles: true,
+        })
     }
     
     // Инициализация метода при подключении таймера в документ
@@ -41,40 +37,29 @@ customElements.define('my-timer', class extends HTMLElement {
         this._nowTime = new Date().toLocaleTimeString('ru-RU')
 
         // Вызов метода для форматирования секунд в ЧЧ:ММ:СС формат
-        if(this.seconds) {
+        if(this.getAttribute('seconds')) {
             this.formattedTime(this.seconds)
-        } else if(this.time) {
+        } else if(this.getAttribute('to-time')) {
             this.formattedTime(this.time)
         }
 
-        this.startButton.addEventListener('click', () => {                          // Привязка события по клику
-            this.startButton.dispatchEvent(this.startTimerEvent)                    // Вызов события по старту таймера
-        })
-        this.startButton.addEventListener('starttimer', () => this.startTimer())    // Привязка события по старту таймера
+        this.addEventListener('starttimer', () => this.startTimer())    // Привязка события по старту таймера
+        this.addEventListener('pausetimer', () => this.pauseTimer())    // Привязка события по паузе таймера
+        this.addEventListener('resettimer', () => this.resetTimer())    // Привязка события по откату таймера
         
-        this.pauseButton.addEventListener('click', () => {                          // Привязка события по клику
-            this.pauseButton.dispatchEvent(this.pauseTimerEvent)                    // Вызов события по паузе таймера
+        this.addEventListener('endtimer', () => {                       // Привязка события по окончанию таймера
+            clearInterval(this.timerInterval)                           // Очиска интервала
+            this._shadow.innerHTML = 'Время кончилось'                  // Вставка текста при окончании таймера
         })
-        this.pauseButton.addEventListener('pausetimer', () => this.pauseTimer())    // Привязка события по паузе таймера
-        
-        this.resetButton.addEventListener('click', () => {                          // Привязка события по клику
-            this.resetButton.dispatchEvent(this.resetTimerEvent)                    // Вызов события по откату таймера
-        })
-        this.resetButton.addEventListener('resettimer', () => this.resetTimer())    // Привязка события по откату таймера
-        
-        this.timerDisplay.addEventListener('endtimer', () => {                      // Привязка события по окончанию таймера
-            clearInterval(this.timerInterval)                                       // Очиска интервала
-            this._shadow.innerHTML = 'Время кончилось'                              // Вставка текста при окончании таймера
-        })
-        this._shadow.innerHTML = 'Таймер'                                           // Начальный вывод текста в таймер
+        this._shadow.innerHTML = 'Таймер'                               // Начальный вывод текста в таймер
     }
 
     // Инициализация метода при отключения таймера из документа
     disconnectedCallback() {
         // Удаление всех слушателей на кнопках
-        this.startButton.removeEventListener('click', () => {this.startTimer()})
-        this.pauseButton.removeEventListener('click', () => {this.pauseTimer()})
-        this.resetButton.removeEventListener('click', () => {this.resetTimer()})
+        this.removeEventListener('starttimer', () => {this.startTimer()})
+        this.removeEventListener('pausetimer', () => {this.pauseTimer()})
+        this.removeEventListener('resettimer', () => {this.resetTimer()})
     }
 
     // Инициализация геттера для получения всех атрибутов
@@ -82,11 +67,22 @@ customElements.define('my-timer', class extends HTMLElement {
         return ['seconds', 'to-time']
     }
 
+    // Инициализация метода для обновления значений атрибутов
+    attributeChangedCallback(name, oldValue, newValue) {
+        this.startTrigger = false
+        clearInterval(this.timerInterval)
+        if (name === 'seconds' && newValue !== oldValue) {
+            this.formattedTime(newValue)
+        } else if (name === 'to-time' && newValue !== oldValue) {
+            this.formattedTime(newValue)
+        }
+    }
+
     // Инициализация метода для форматирования времени в ЧЧ:ММ:СС формат
     formattedTime(time) {
         let formattedTime = ''                             // Инициализация начальной строки
         const currentTime = new Date().getTime() / 1000    // Текущее время в секундах
-    
+
         if (time.indexOf(':') !== -1) {
             const timeParts = time.split(':')
             
@@ -198,4 +194,27 @@ customElements.define('my-timer', class extends HTMLElement {
         }
         this.numberDisplay()
     }
+}
+
+// Регистрация пользовательского компонента
+customElements.define('my-timer', Timer)
+
+// Ссылка на элемент
+const myTimer = document.querySelector('my-timer')
+
+// Инициализация кнопок таймера
+const startButton = document.getElementById('startBtn') || undefined
+const pauseButton = document.getElementById('pauseBtn') || undefined
+const resetButton = document.getElementById('resetBtn') || undefined
+
+startButton.addEventListener('click', () => {               // Привязка события по клику
+    myTimer.dispatchEvent(new CustomEvent('starttimer'))    // Инициализация события старта таймера и его вызов
+})
+
+pauseButton.addEventListener('click', () => {               // Привязка события по клику
+    myTimer.dispatchEvent(new CustomEvent('pausetimer'))    // Инициализация события паузы таймера и его вызов
+})
+
+resetButton.addEventListener('click', () => {               // Привязка события по клику
+    myTimer.dispatchEvent(new CustomEvent('resettimer'))    // Инициализация события сброса таймера и его вызов
 })
