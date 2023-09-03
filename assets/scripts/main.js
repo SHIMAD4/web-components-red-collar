@@ -4,23 +4,32 @@ customElements.define('my-timer', class extends HTMLElement {
         this.seconds = this.getAttribute('seconds') || undefined
         this.minutes = null
         this.hours = null
+
+        this.hoursText = null
+        this.minutesText = null
+        this.secondsText = null
+
         this.startTrigger = false
         this.isPaused = false
         this.timerInterval = null
+
         this.startButton = document.getElementById('startBtn') || undefined
         this.pauseButton = document.getElementById('pauseBtn') || undefined
         this.resetButton = document.getElementById('resetBtn') || undefined
         this.timerDisplay = document.querySelector('.timer__display') || undefined
-        this.hoursText = null
-        this.minutesText = null
-        this.secondsText = null
+        
+        this._shadow = this.timerDisplay.attachShadow({mode: 'open'})
     }
+    
     connectedCallback() {
         this.formattedTime(this.seconds)
         this.startButton.addEventListener('click', () => {this.startTimer()})
         this.pauseButton.addEventListener('click', () => {this.pauseTimer()})
         this.resetButton.addEventListener('click', () => {this.resetTimer()})
+        this.timerDisplay.innerText = 'Таймер'
+        this._shadow.innerHTML = this.timerDisplay.textContent
     }
+
     disconnectedCallback() {
         this.startButton.removeEventListener('click', () => {this.startTimer()})
         this.pauseButton.removeEventListener('click', () => {this.pauseTimer()})
@@ -63,7 +72,7 @@ customElements.define('my-timer', class extends HTMLElement {
         this.hoursText = this.hours === 0 ? '' : this.formatNumber(this.hours)
         this.minutesText = this.minutes === 0 ? '' : this.formatNumber(this.minutes)
         this.secondsText = this.seconds === 0 ? '' : this.formatNumber(this.seconds)
-        this.timerDisplay.innerText = `${this.hoursText}${this.hoursText && this.minutesText ? ':' : ''}${this.minutesText}${(this.hoursText || this.minutesText) && this.secondsText ? ':' : ''}${this.secondsText}`
+        this._shadow.innerHTML = `${this.hoursText}${this.hoursText && this.minutesText ? ':' : ''}${this.minutesText}${(this.hoursText || this.minutesText) && this.secondsText ? ':' : ''}${this.secondsText}`
     }
 
     startTimer() {
@@ -96,7 +105,6 @@ customElements.define('my-timer', class extends HTMLElement {
         }
     }
     
-
     pauseTimer() {
         this.isPaused = true
         this.startTrigger = false
