@@ -10,7 +10,7 @@ body {
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  background-color: rgb(255, 255, 255);
+  background-color: rgb(0, 0, 0);
   font-family: "Inter", sans-serif;
 }
 
@@ -22,9 +22,7 @@ button {
 }
 
 .timer {
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: repeat(2, 1fr);
+  margin-bottom: 1rem;
 }
 .timer__display {
   width: 23.5rem;
@@ -35,6 +33,7 @@ button {
   text-align: center;
   font-size: 2rem;
 }
+
 .timer__button {
   display: flex;
   justify-content: center;

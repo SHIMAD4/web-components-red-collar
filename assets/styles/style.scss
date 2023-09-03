@@ -1,4 +1,4 @@
-$body-bg: rgb(255, 255, 255);
+$body-bg: rgb(0, 0, 0);
 
 $timer-bg: #FF8C00;
 $timer-bg-hover: #FFA500;
@@ -29,9 +29,7 @@ button {
 }
 
 .timer {
-    display: grid;
-    grid-template-columns: 1fr;
-    grid-template-rows: repeat(2, 1fr);
+    margin-bottom: 1rem;
     &__display {
         width: 23.5rem;
         padding: 2rem;
@@ -41,26 +39,27 @@ button {
         text-align: center;
         font-size: 2rem;
     }
-    &__button {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 1rem;
-        &__start,
-        &__stop,
-        &__reset {
-            padding: 1.5rem;
-            background-color: $timer-bg;
-            color: $timer-text-clr;
-            border-radius: $border-radius;
-            font-weight: 500;
-            cursor: pointer;
-            &:hover {
-                background-color: $timer-bg-hover;
-            }
-            &:active {
-                background-color: $timer-bg-active;
-            }
+}
+
+.timer__button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    &__start,
+    &__stop,
+    &__reset {
+        padding: 1.5rem;
+        background-color: $timer-bg;
+        color: $timer-text-clr;
+        border-radius: $border-radius;
+        font-weight: 500;
+        cursor: pointer;
+        &:hover {
+            background-color: $timer-bg-hover;
+        }
+        &:active {
+            background-color: $timer-bg-active;
         }
     }
 }

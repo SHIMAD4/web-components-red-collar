@@ -18,16 +18,37 @@ customElements.define('my-timer', class extends HTMLElement {
         this.resetButton = document.getElementById('resetBtn') || undefined
         this.timerDisplay = document.querySelector('.timer__display') || undefined
         
-        this._shadow = this.timerDisplay.attachShadow({mode: 'open'})
+        this._shadow = this.timerDisplay.attachShadow({mode: 'closed'})
+
+        this.startTimerEvent = new Event('starttimer')
+        this.pauseTimerEvent = new Event('pausetimer')
+        this.resetTimerEvent = new Event('resettimer')
+        this.endTimerEvent = new Event('endtimer')
     }
     
     connectedCallback() {
         this.formattedTime(this.seconds)
-        this.startButton.addEventListener('click', () => {this.startTimer()})
-        this.pauseButton.addEventListener('click', () => {this.pauseTimer()})
-        this.resetButton.addEventListener('click', () => {this.resetTimer()})
-        this.timerDisplay.innerText = 'Таймер'
-        this._shadow.innerHTML = this.timerDisplay.textContent
+
+        this.startButton.addEventListener('click', () => {
+            this.startButton.dispatchEvent(this.startTimerEvent)
+        })
+        this.startButton.addEventListener('starttimer', () => this.startTimer())
+        
+        this.pauseButton.addEventListener('click', () => {
+            this.pauseButton.dispatchEvent(this.pauseTimerEvent)
+        })
+        this.pauseButton.addEventListener('pausetimer', () => this.pauseTimer())
+        
+        this.resetButton.addEventListener('click', () => {
+            this.resetButton.dispatchEvent(this.resetTimerEvent)
+        })
+        this.resetButton.addEventListener('resettimer', () => this.resetTimer())
+        
+        this.timerDisplay.addEventListener('endtimer', () => {
+            clearInterval(this.timerInterval)
+            this._shadow.innerHTML = 'Время кончилось'
+        })
+        this._shadow.innerHTML = 'Таймер'
     }
 
     disconnectedCallback() {
@@ -71,7 +92,7 @@ customElements.define('my-timer', class extends HTMLElement {
     numberDisplay() {
         this.hoursText = this.hours === 0 ? '' : this.formatNumber(this.hours)
         this.minutesText = this.minutes === 0 ? '' : this.formatNumber(this.minutes)
-        this.secondsText = this.seconds === 0 ? '' : this.formatNumber(this.seconds)
+        this.secondsText = this.seconds === 0 ? '00' : this.formatNumber(this.seconds)
         this._shadow.innerHTML = `${this.hoursText}${this.hoursText && this.minutesText ? ':' : ''}${this.minutesText}${(this.hoursText || this.minutesText) && this.secondsText ? ':' : ''}${this.secondsText}`
     }
 
@@ -95,8 +116,7 @@ customElements.define('my-timer', class extends HTMLElement {
                                 this.seconds = 59
                             } else {
                                 this.startTrigger = false
-                                clearInterval(this.timerInterval)
-                                this.timerDisplay.innerText = 'Время кончилось'
+                                this.timerDisplay.dispatchEvent(this.endTimerEvent)
                             }
                         }
                     }
@@ -120,4 +140,7 @@ customElements.define('my-timer', class extends HTMLElement {
         this.formattedTime(this.getAttribute('seconds'))
         this.numberDisplay()
     }
+})
+
+document.addEventListener('DOMContentLoaded', () => {
 })
